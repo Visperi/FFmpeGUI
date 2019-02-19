@@ -27,6 +27,7 @@ class MainWindow(QMainWindow):
     """
     Main window for the whole program.
     """
+    # TODO: Add menu bar with buttons etc.
 
     def __init__(self):
         super().__init__()
@@ -55,16 +56,13 @@ class MainWindow(QMainWindow):
         new_filename_label = QLabel("New file name")
 
         self.bitrate_box = QComboBox()
-        self.bitrate = "Default"
         bitrate_box_label = QLabel("Bitrate")
         bitrate_unit_label = QLabel("kbps")
 
         self.output_format_box = QComboBox()
-        self.output_format = ".MP3"
         output_format_label = QLabel("Format")
 
         self.make_mono_box = QCheckBox()
-        self.make_mono_state = False
         make_mono_lbl = QLabel("Make mono")
 
         self.settings_btn = QPushButton("Settings")
@@ -114,6 +112,9 @@ class MainWindow(QMainWindow):
         self.show()
 
     def add_widget_actions(self):
+        """
+        Connect fields, buttons and boxes to accordin class methods
+        """
         output_bitrates = ["Default", "320", "256", "192", "128", "96"]
         output_formats = ["MP3", "MP4", "WAV", "WebM"]
 
@@ -125,39 +126,39 @@ class MainWindow(QMainWindow):
         self.settings_btn.clicked.connect(self.open_settings_window)
         self.start_btn.clicked.connect(self.start_ffmpeg_convert)
         self.exit_btn.clicked.connect(self.close_program)
-        self.make_mono_box.stateChanged.connect(self.set_make_mono)
-        self.bitrate_box.activated.connect(self.set_bitrate)
-        self.output_format_box.activated.connect(self.set_output_format)
 
     def set_input_file_path(self):
+        """
+        Change path in input file field
+        """
         default_input_dir = settings.get_setting("path_in")
         input_file_path = QFileDialog.getOpenFileName(self, "Choose an input file", default_input_dir)[0]
         self.input_file_path.setText(input_file_path)
 
     def set_output_path(self):
+        """
+        Change path in output directory field
+        """
         default_output_dir = settings.get_setting("path_out")
         output_directory_path = QFileDialog.getExistingDirectory(self, "Choose an output directory", default_output_dir)
         self.output_path_field.setText(output_directory_path)
 
     def open_settings_window(self):
+        """
+        Execute a modal settings pop-up window.
+        """
         self.settings_window = settings.Settings()
         self.settings_window.show()
 
-    def set_make_mono(self):
-        self.make_mono_state = self.make_mono_box.isChecked()
-
-    def set_output_format(self):
-        self.output_format = f".{self.output_format_box.currentText()}"
-
-    def set_bitrate(self):
-        self.bitrate = self.bitrate_box.currentText()
-
     def start_ffmpeg_convert(self):
+        """
+        Build a FFmpeg convert command based on given information in fields and boxes.
+        """
         input_path = self.input_file_path.text()
         output_dir_path = self.output_path_field.text()
-        make_mono = self.make_mono_state
-        output_format = self.output_format
-        bitrate = self.bitrate
+        make_mono = self.make_mono_box.isChecked()
+        output_format = self.output_format_box.currentText()
+        bitrate = self.bitrate_box.currentText()
         renamed_output_filename = self.new_filename.text()
         testing_mode_status = settings.get_setting("testing", boolean=True)
         # Gives file extension if user has given it manually in renamed output file field. This will override output
@@ -184,12 +185,15 @@ class MainWindow(QMainWindow):
         else:
             output_file_name = renamed_output_filename
 
-        # Finally build full output path based on given information and start conversion. FFmpeg will open a terminal
+        # Build full output path based on given information and start conversion. FFmpeg will open a console window
         # for further information during and after this process.
         output_path = os.path.join(output_dir_path, f"{output_file_name}{output_format.lower()}")
         convert.convert_file(input_path, output_path, make_mono, bitrate, testing_mode=testing_mode_status)
 
     def close_program(self):
+        """
+        Exit the program safely.
+        """
         self.close()
 
 

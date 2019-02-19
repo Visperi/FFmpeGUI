@@ -17,6 +17,9 @@ import os
 
 # ffmpeg -i video.mp4 -ac 1 -b:a 32k audio.mp3
 def convert_file(path_in, path_out, make_mono, bitrate, testing_mode=True):
+    # TODO: subprocess instead of os.system?
+    # TODO: Error handling and logging?
+    # TODO: ffmpeg-python instead of straight system calls?
     if make_mono:
         mono = "-ac 1"
     else:
@@ -28,4 +31,6 @@ def convert_file(path_in, path_out, make_mono, bitrate, testing_mode=True):
     if testing_mode:
         print(f"ffmpeg -i \"{path_in}\" {mono} {def_bitrate} \"{path_out}\"")
     else:
-        os.system(f"ffmpeg -i \"{path_in}\" {mono} {def_bitrate} \"{path_out}\"")
+        # Call ffmpeg in system console and after conversion pause it if user wants to read the report
+        os.system(f"ffmpeg -i \"{path_in}\" {mono} {def_bitrate} \"{path_out}\" & echo Conversion was successful. "
+                  f"& pause")
