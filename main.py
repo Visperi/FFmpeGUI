@@ -19,15 +19,20 @@ from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QApplication, QHBoxLay
 from PyQt5.QtGui import QIcon
 import convert
 import os
+import settings
 
 
 # noinspection PyArgumentList
 class MainWindow(QMainWindow):
+    """
+    Main window for the whole program.
+    """
 
     def __init__(self):
         super().__init__()
+        settings.check_resources()
         self.setWindowTitle("FFmpeGUI")
-        self.setGeometry(300, 300, 450, 160)
+        self.setGeometry(300, 300, 450, 170)
         self.icon = QIcon("resources\\main_icon.ico")
         self.make_main_layout()
         self.add_widget_actions()
@@ -125,16 +130,18 @@ class MainWindow(QMainWindow):
         self.output_format_box.activated.connect(self.set_output_format)
 
     def set_input_file_path(self):
-        input_file_path = QFileDialog.getOpenFileName(self, "Choose an input file")[0]
+        default_input_dir = settings.get_setting("path_in")
+        input_file_path = QFileDialog.getOpenFileName(self, "Choose an input file", default_input_dir)[0]
         self.input_file_path.setText(input_file_path)
 
     def set_output_path(self):
-        output_directory_path = QFileDialog.getExistingDirectory(self, "Choose an output directory")
+        default_output_dir = settings.get_setting("path_out")
+        output_directory_path = QFileDialog.getExistingDirectory(self, "Choose an output directory", default_output_dir)
         self.output_path_field.setText(output_directory_path)
 
     def open_settings_window(self):
-        # TODO: Settings window with testing mode check box and default paths
-        print("Opening settings window.")
+        self.settings_window = settings.Settings()
+        self.settings_window.show()
 
     def set_make_mono(self):
         self.make_mono_state = self.make_mono_box.isChecked()
@@ -152,25 +159,35 @@ class MainWindow(QMainWindow):
         output_format = self.output_format
         bitrate = self.bitrate
         renamed_output_filename = self.new_filename.text()
+        testing_mode_status = settings.get_setting("testing", boolean=True)
+        # Gives file extension if user has given it manually in renamed output file field. This will override output
+        # format from combobox.
         manual_output_format = os.path.splitext(renamed_output_filename)[1]
 
+        # No output directory was given. Input directory will be used.
         if not output_dir_path:
             output_dir_path = os.path.split(input_path)[0]
+
+        # No new name for output file was given. Input file name will be used.
         if not renamed_output_filename:
-            input_file_name = os.path.split(input_path)[1]
+            input_file_name_full = os.path.split(input_path)[1]
             input_file_ext = os.path.splitext(input_path)[1]
-            input_file_name = input_file_name.strip(input_file_ext)
+            input_file_name = input_file_name_full.strip(input_file_ext)
             output_file_name = input_file_name
 
+        # File extension was given in renamed output file field and it's not empty.
         elif manual_output_format and manual_output_format != ".":
             output_file_name = os.path.splitext(renamed_output_filename)[0]
             output_format = manual_output_format
 
+        # New name for output file was given, but without an extension
         else:
             output_file_name = renamed_output_filename
 
+        # Finally build full output path based on given information and start conversion. FFmpeg will open a terminal
+        # for further information during and after this process.
         output_path = os.path.join(output_dir_path, f"{output_file_name}{output_format.lower()}")
-        convert.convert_file(input_path, output_path, make_mono, bitrate, testing_mode=True)
+        convert.convert_file(input_path, output_path, make_mono, bitrate, testing_mode=testing_mode_status)
 
     def close_program(self):
         self.close()
@@ -179,5 +196,4 @@ class MainWindow(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_window = MainWindow()
-    main_window.show()
     sys.exit(app.exec_())
