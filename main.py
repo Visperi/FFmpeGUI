@@ -187,7 +187,7 @@ class MainWindow(QMainWindow):
 
         # Build full output path based on given information and start conversion. FFmpeg will open a console window
         # for further information during and after this process.
-        output_path = os.path.join(output_dir_path, f"{output_file_name}{output_format.lower()}")
+        output_path = os.path.join(output_dir_path, f"{output_file_name}.{output_format.lower()}")
         convert.convert_file(input_path, output_path, make_mono, bitrate, testing_mode=testing_mode_status)
 
     def close_program(self):

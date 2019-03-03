@@ -32,5 +32,5 @@ def convert_file(path_in, path_out, make_mono, bitrate, testing_mode=True):
         print(f"ffmpeg -i \"{path_in}\" {mono} {def_bitrate} \"{path_out}\"")
     else:
         # Call ffmpeg in system console and after conversion pause it if user wants to read the report
-        os.system(f"ffmpeg -i \"{path_in}\" {mono} {def_bitrate} \"{path_out}\" & echo Conversion was successful. "
+        os.system(f"ffmpeg -i \"{path_in}\" {mono} {def_bitrate} \"{path_out}\" & echo Conversion ended. "
                   f"& pause")
